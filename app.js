@@ -25,13 +25,13 @@ var order_recognizer = new builder.LuisRecognizer(model);
 //We ought to have a database or at least a JSON file populating this
 var menuItems = {
 	"cheese pizza": {
-		"cost": 9
+		"price": 9
 	},
 	"pepperoni pizza": {
-		"cost": 10
+		"price": 10
 	},
 	"salad": {
-		"cost": 5
+		"price": 5
 	}
 }
 
@@ -51,6 +51,7 @@ intents.onDefault([
 	},
 	function (session, results) {
 		session.send("Hello %s! Currently we only have cheese and pepperoni pizzas, and salad. Please place your order one item at a time.", session.userData.name);
+		newOrder(session);
 		session.beginDialog('/order');
 	}
 ]);
@@ -60,7 +61,7 @@ intents.matches(/^change name/i, [
 		session.beginDialog('/profile');
 	},
 	function (session, results) {
-		session.send("Ok... Changed your name to %s", session.userData.name);
+		session.send("Ok... Changed your name to %s, your phone number to %s, and your address to %s.", session.userData.name, session.userData.phoneNumber, session.userData.address);
 	}
 ]);
 
@@ -82,6 +83,9 @@ bot.dialog('/profile', [
 	}
 ]);
 
+var newOrder = function(session) {
+	session.privateConversationData.order = {};
+}
 
 var order_dialog = new builder.IntentDialog({ recognizers: [order_recognizer]});
 bot.dialog('/order', order_dialog);
@@ -91,24 +95,44 @@ order_dialog.matches('AddOrder', [
 		if (entities) {
 			var menuItem = builder.EntityRecognizer.findBestMatch(menuItems, entities.entity).entity;
 			session.send("Ok! Added one %s to your order.", menuItem);
+			var order = session.privateConversationData.order;
+			if (order[menuItem]) {
+				order[menuItem].quantity += 1;
+			} else {
+				order[menuItem] = {
+					"quantity": 1
+				}
+			}
 		} else {
-			session.send("I think you're trying to add an item to the order, but I can't figure out what item it is.");
+			session.send("I think you're trying to add an item to your order, but I can't figure out what item it is.");
 		}
 	}
 ]);
 order_dialog.matches("CompleteOrder", [
 	function(session, args, next) {
-		session.send("Ok! I have the following as your order: TBD\nIt will be delivered to your address at %s, and we have your phone number as %s.", session.userData.address, session.userData.phoneNumber);
-		builder.Prompts.confirm(session, "Is that all correct?");
+		var order = session.privateConversationData.order;
+		if (Object.keys(order).length !== 0) {
+			var orderStr = "";
+			var totalPrice = 0;
+			for (item in order) {
+				orderStr += order[item].quantity + " " + item + "\n";
+				totalPrice += order[item].quantity * menuItems[item].price;
+			}
+			session.send("Ok! I have the following as your order:\n%s. Your total is $%s. It will be delivered to your address at %s, and we have your phone number as %s.", orderStr, totalPrice, session.userData.address, session.userData.phoneNumber);
+			builder.Prompts.confirm(session, "Is that all correct?");
+		} else {
+			session.send("We don't have any items in your order yet. Please order an item first.");
+		}
 	},
 	function(session, results) {
-		console.log(results.response);
 		if (results.response) {
 			session.send("It's on its way! Expected delivery time will be determined by a complicated server side algorithm from a combination of distance to your address and how over worked our delivery staff currently is. Cash only, since credit card processing is well beyond the scope of this exercise.");
 			// Then of course we need to actually notify the staff to make the order
 			// and deliver it.
+			session.endDialog();
 		} else {
-			session.send("What is incorrect?"); //steps to figure out what went wrong
+			session.send("Ok let's just start over then.");
+			newOrder(session);
 		}
 	}
 ]);
