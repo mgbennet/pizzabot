@@ -19,9 +19,7 @@ var intents = new builder.IntentDialog();
 
 //Luis setup
 var model = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/d7a6d502-2ffd-4a89-9502-39c0490472b5?subscription-key=b5c9dacc5f00482799f8bc63166d615b&verbose=true";
-var recognizer = new builder.LuisRecognizer(model);
-var order_dialog = new builder.IntentDialog({ recognizers: [recognizer]});
-
+var order_recognizer = new builder.LuisRecognizer(model);
 
 //
 // Bots Dialogs
@@ -37,7 +35,7 @@ intents.onDefault([
 		}
 	},
 	function (session, results) {
-		session.send("Hello %s! Would you like to place an order?", session.userData.name);
+		session.send("Hello %s! Currently we only have cheese and pepperoni pizzas, and salad. Please place your order one item at a time.", session.userData.name);
 		session.beginDialog('/order');
 	}
 ]);
@@ -47,7 +45,7 @@ intents.matches(/^change name/i, [
 		session.beginDialog('/profile');
 	},
 	function (session, results) {
-		session.send('Ok... Changed your name to %s', session.userData.name);
+		session.send("Ok... Changed your name to %s", session.userData.name);
 	}
 ]);
 
@@ -69,7 +67,27 @@ bot.dialog('/profile', [
 	}
 ]);
 
+
+var order_dialog = new builder.IntentDialog({ recognizers: [order_recognizer]});
 bot.dialog('/order', order_dialog);
-order_dialog.matches("CompleteOrder", builder.DialogAction.send("Completing order!"));
-order_dialog.matches("AddOrder", builder.DialogAction.send("Adding something to order"));
+order_dialog.matches('AddOrder', [
+	function(session, args) {
+		var menuItem = builder.EntityRecognizer.findEntity(args.entities, 'AddOrder');
+		session.send("Ok! Added one %s to your order.", menuItem);
+	}
+]);
+order_dialog.matches("CompleteOrder", [
+	function(session, args, next) {
+		session.send("Ok! I have the following as your order: TBD\nIt will be delivered to your address at %s.", session.userData.address)
+		builder.Prompts.confirm(session, "Is that all correct?");
+	},
+	function(session, results) {
+		console.log(results.response);
+		if (results.response) {
+			session.send("It's on its way! Expected delivery time will be determined by a complicated server side algorithm from a combination of distance to your address and how over worked our delivery staff currently is. Cash only, since credit card processing is well beyond the scope of this exercise.");
+		} else {
+			session.send("What is incorrect?"); //steps to figure out what went wrong
+		}
+	}
+]);
 order_dialog.onDefault(builder.DialogAction.send("I'm sorry, I'm only a simple bot and didn't understand."));
