@@ -21,6 +21,21 @@ var intents = new builder.IntentDialog();
 var model = "https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/d7a6d502-2ffd-4a89-9502-39c0490472b5?subscription-key=b5c9dacc5f00482799f8bc63166d615b&verbose=true";
 var order_recognizer = new builder.LuisRecognizer(model);
 
+//Menu
+//We ought to have a database or at least a JSON file populating this
+var menuItems = {
+	"cheese pizza": {
+		"cost": 9
+	},
+	"pepperoni pizza": {
+		"cost": 10
+	},
+	"salad": {
+		"cost": 5
+	}
+}
+
+
 //
 // Bots Dialogs
 //
@@ -72,19 +87,26 @@ var order_dialog = new builder.IntentDialog({ recognizers: [order_recognizer]});
 bot.dialog('/order', order_dialog);
 order_dialog.matches('AddOrder', [
 	function(session, args) {
-		var menuItem = builder.EntityRecognizer.findEntity(args.entities, 'AddOrder');
-		session.send("Ok! Added one %s to your order.", menuItem);
+		var entities = builder.EntityRecognizer.findEntity(args.entities, 'MenuItem');
+		if (entities) {
+			var menuItem = builder.EntityRecognizer.findBestMatch(menuItems, entities.entity).entity;
+			session.send("Ok! Added one %s to your order.", menuItem);
+		} else {
+			session.send("I think you're trying to add an item to the order, but I can't figure out what item it is.");
+		}
 	}
 ]);
 order_dialog.matches("CompleteOrder", [
 	function(session, args, next) {
-		session.send("Ok! I have the following as your order: TBD\nIt will be delivered to your address at %s.", session.userData.address)
+		session.send("Ok! I have the following as your order: TBD\nIt will be delivered to your address at %s, and we have your phone number as %s.", session.userData.address, session.userData.phoneNumber);
 		builder.Prompts.confirm(session, "Is that all correct?");
 	},
 	function(session, results) {
 		console.log(results.response);
 		if (results.response) {
 			session.send("It's on its way! Expected delivery time will be determined by a complicated server side algorithm from a combination of distance to your address and how over worked our delivery staff currently is. Cash only, since credit card processing is well beyond the scope of this exercise.");
+			// Then of course we need to actually notify the staff to make the order
+			// and deliver it.
 		} else {
 			session.send("What is incorrect?"); //steps to figure out what went wrong
 		}
