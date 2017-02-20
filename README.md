@@ -6,4 +6,4 @@ To setup and test this on your local machine:
 2. '''cd pizzabot'''
 3. '''npm install'''
 4. '''node app.js'''
-5. In the [Bot Framework Emulator](https://docs.botframework.com/en-us/tools/bot-framework-emulator/), go to http://localhost:3978/api/messages (password and app id are empty).
+5. In the [Bot Framework Emulator](https://docs.botframework.com/en-us/tools/bot-framework-emulator/), go to http://localhost:3978/api/messages (password and app id are empty). Send any message to start the conversation.

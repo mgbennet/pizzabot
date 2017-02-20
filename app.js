@@ -28,7 +28,7 @@ var menuItems = {
 		"price": 9
 	},
 	"pepperoni pizza": {
-		"price": 10
+		"price": 11
 	},
 	"salad": {
 		"price": 5
@@ -43,14 +43,21 @@ bot.dialog('/', intents);
 
 intents.onDefault([
 	function (session, args, next) {
+		session.send("Thank you for choosing Fictional Pizzeria, where the food is imaginary but the experience is real. This is an automated chat bot that can take your delivery order.")
 		if (!session.userData.name) {
 			session.beginDialog('/profile');
 		} else {
-			next();
+			next({"preExisting": true});
 		}
 	},
 	function (session, results) {
-		session.send("Hello %s! Currently we only have cheese and pepperoni pizzas, and salad. Please place your order one item at a time.", session.userData.name);
+		var greeting;
+		if (results.preExisting) {
+			greeting = "Welcome back, "
+		} else {
+			greeting = "Hello, "
+		}
+		session.send(greeting + "%s!", session.userData.name);
 		newOrder(session);
 		session.beginDialog('/order');
 	}
@@ -89,6 +96,9 @@ var newOrder = function(session) {
 
 var order_dialog = new builder.IntentDialog({ recognizers: [order_recognizer]});
 bot.dialog('/order', order_dialog);
+order_dialog.onBegin(function(session, args) {
+		session.send("Currently we only have cheese pizzas for $9 and pepperoni pizzas for $11, and salad for $5. Please place your order one item at a time.");
+});
 order_dialog.matches('AddOrder', [
 	function(session, args) {
 		var entities = builder.EntityRecognizer.findEntity(args.entities, 'MenuItem');
@@ -115,7 +125,8 @@ order_dialog.matches("CompleteOrder", [
 			var orderStr = "";
 			var totalPrice = 0;
 			for (item in order) {
-				orderStr += order[item].quantity + " " + item + "\n";
+				var plural = order[item].quantity != 1 ? "s" : "";
+				orderStr += order[item].quantity + " " + item + plural + "\n";
 				totalPrice += order[item].quantity * menuItems[item].price;
 			}
 			session.send("Ok! I have the following as your order:\n%s. Your total is $%s. It will be delivered to your address at %s, and we have your phone number as %s.", orderStr, totalPrice, session.userData.address, session.userData.phoneNumber);
