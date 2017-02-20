@@ -97,7 +97,7 @@ var newOrder = function(session) {
 var order_dialog = new builder.IntentDialog({ recognizers: [order_recognizer]});
 bot.dialog('/order', order_dialog);
 order_dialog.onBegin(function(session, args) {
-		session.send("Currently we only have cheese pizzas for $9 and pepperoni pizzas for $11, and salad for $5. Please place your order one item at a time.");
+		session.send("Currently we only have cheese pizzas for $9 and pepperoni pizzas for $11, and salad for $5. Please place your order one item at a time. When you're done, just say \"I'm done\" and we'll check you out.");
 });
 order_dialog.matches('AddOrder', [
 	function(session, args) {
