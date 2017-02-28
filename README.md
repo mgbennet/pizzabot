@@ -7,11 +7,13 @@ To setup and test this on your local machine:
 
 2. `cd pizzabot`
 
-3. `npm install`
+3. In config.js, change `process.env.LUIS_URL` to a LUIS url. I might make my LUIS public in the future but for now its private.
 
-4. `node app.js`
+4. `npm install`
 
-5. In the [Bot Framework Emulator](https://docs.botframework.com/en-us/tools/bot-framework-emulator/), go to http://localhost:3978/api/messages (password and app id are empty). Send any message to start the conversation. App ID is 7f08e462-310c-414e-bc83-41f2e34b50f1, password is bcqgPBW64fqUkvfvTu4Wkcy.
+5. `node app.js`
+
+6. In the [Bot Framework Emulator](https://docs.botframework.com/en-us/tools/bot-framework-emulator/), go to http://localhost:3978/api/messages (password and app id are defined in config.js, by default both are empty strings). Send any message to start the conversation.
 
 You also can test it out by pointing your Bot Framework to http://pizzabottest.azurewebsites.net/api/messages.
 
