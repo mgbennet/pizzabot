@@ -20,7 +20,7 @@ You also can test it out by pointing your Bot Framework to http://pizzabottest.a
 ## Future to-dos
 * Proper identification of multiple quantaties in order, ie "I'd like two cheese pizzas" will add 2 pizzas, not one.
 
-* Bigger menu loaded in from json file, with variations like Large and modifiers like extra cheese with corresponding price increases.
+* Bigger menu with variations like Large and modifiers like Extra Cheese with corresponding price increases.
 
 * Better profile management.
 

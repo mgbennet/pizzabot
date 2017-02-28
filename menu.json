@@ -1,0 +1,11 @@
+{
+	"cheese pizza": {
+		"price": 9
+	},
+	"pepperoni pizza": {
+		"price": 11
+	},
+	"salad": {
+		"price": 5
+	}
+}

@@ -1,5 +1,6 @@
 var restify = require('restify');
 var builder = require('botbuilder');
+var fs = require('fs');
 var config = require('./config.js');
 
 
@@ -23,18 +24,7 @@ var model = process.env.LUIS_URL;
 var order_recognizer = new builder.LuisRecognizer(model);
 
 //Menu
-//We ought to have a database or at least a JSON file populating this
-var menuItems = {
-	"cheese pizza": {
-		"price": 9
-	},
-	"pepperoni pizza": {
-		"price": 11
-	},
-	"salad": {
-		"price": 5
-	}
-}
+var menuItems = JSON.parse(fs.readFileSync('./menu.json', 'utf8'));
 
 
 //
