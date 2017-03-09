@@ -92,16 +92,21 @@ order_dialog.onBegin(function(session, args) {
 });
 order_dialog.matches('AddOrder', [
 	function(session, args) {
-		var entities = builder.EntityRecognizer.findEntity(args.entities, 'MenuItem');
-		if (entities) {
-			var menuItem = builder.EntityRecognizer.findBestMatch(menuItems, entities.entity).entity;
-			session.send("Ok! Added one %s to your order.", menuItem);
+		var menuEntities = builder.EntityRecognizer.findEntity(args.entities, 'MenuItem');
+		var numberEntities = builder.EntityRecognizer.findEntity(args.entities, 'builtin.number');
+		if (menuEntities) {
+			var menuItem = builder.EntityRecognizer.findBestMatch(menuItems, menuEntities.entity).entity;
+			var quantity = 1;
+			if (numberEntities) {
+				quantity = parseInt(numberEntities.resolution.value);
+			}
+			session.send("Ok! Added %s %s to your order.", quantity, menuItem);
 			var order = session.privateConversationData.order;
 			if (order[menuItem]) {
-				order[menuItem].quantity += 1;
+				order[menuItem].quantity += quantity;
 			} else {
 				order[menuItem] = {
-					"quantity": 1
+					"quantity": quantity
 				}
 			}
 		} else {
